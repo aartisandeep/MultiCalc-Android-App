@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Player 1</title>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: brown;
+        }
+
+        p {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: chocolate;
+        }
+
+        h4 {
+            color: crimson;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        select,
+        input[type="number"],
+        button {
+            margin-top: 10px;
+        }
+
+        button {
+            color: darkred;
+        }
+    </style>
+</head>
+<body>
+    <!-- Player 1 information -->
+    <div class="container">
+        <h1>Player 1: <span id="playerName"></span></h1>
+        <p>Number of stones in each pile:</p>
+        <ul>
+            <li>Pile 1: <span id="pile1"></span></li>
+            <li>Pile 2: <span id="pile2"></span></li>
+            <li>Pile 3: <span id="pile3"></span></li>
+        </ul>
+        <h4>Minimum Stones to pick: 1</h4>
+        <h4>Maximum Stones to pick: 3</h4>
+        <!-- Player's move -->
+        <h2>Your Move:</h2>
+        <p>Choose a pile:</p>
+        <select id="pileSelect">
+            <option value="1">Pile 1</option>
+            <option value="2">Pile 2</option>
+            <option value="3">Pile 3</option>
+        </select>
+    
+        <p>Choose the number of stones:</p>
+        <input type="number" id="stones" min="1" max="3">
+        <button onclick="makeMove()">Make Move</button>
+
+        <!-- Socket.IO library for real-time communication -->
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            // Create a socket connection
+            const socket = io();
+            // Get the player's name from sessionStorage
+            const playerName = sessionStorage.getItem('playerName') || '';
+            // Emit a 'join' event to the server with the player's name
+            socket.emit('join', playerName);
+
+            // Set player's name dynamically
+            document.getElementById('playerName').innerText = playerName;
+
+            // Event handler for 'updateStones' event
+            socket.on('updateStones', (stones) => {
+                document.getElementById('pile1').innerText = stones.pile1;
+                document.getElementById('pile2').innerText = stones.pile2;
+                document.getElementById('pile3').innerText = stones.pile3;
+            });
+
+            // Event handler for 'gameOver' event
+            socket.on('gameOver', (player) => {
+                if (player === 'player1') {
+                    alert('Player 1 loses!');
+                } else if (player === 'player2') {
+                    alert('Player 2 loses!');
+                }
+            });
+
+            // Function to handle the player's move
+            function makeMove() {
+                const pile = document.getElementById('pileSelect').value;
+                const stones = document.getElementById('stones').value;
+                socket.emit('makeMove', { player: 'player1', pile: parseInt(pile), stones: parseInt(stones) });
+            }
+        </script>
+    </div>
+</body>
+</html>
